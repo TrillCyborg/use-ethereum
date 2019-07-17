@@ -1,0 +1,13 @@
+{
+  "name": "use-ethereum",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "ncc run index.ts",
+    "build": "ncc build index.ts -o dist"
+  },
+  "devDependencies": {
+    "@zeit/ncc": "^0.20.4"
+  }
+}
