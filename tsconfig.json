@@ -3,6 +3,7 @@
     "lib": ["dom", "esnext"],
     "target": "es2015",
     "moduleResolution": "node",
+    "jsx": "preserve",
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "strict": true,
