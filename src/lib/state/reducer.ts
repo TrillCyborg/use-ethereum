@@ -35,12 +35,6 @@ const walletActionSuccess = (state: EthereumState, payload: WalletAndAssets) => 
   })
   return Object.assign({}, state, newState)
 }
-const updateAsset = (state: EthereumState, assetType: AssetType, update: Partial<Asset>) =>
-  Object.assign({}, state, {
-    assets: Object.assign({}, state.assets, {
-      [assetType]: Object.assign({}, state.assets[assetType], update),
-    }),
-  })
 
 const ethereumReducer = {
   [ACTIONS.initWalletStart]: (state: EthereumState): EthereumState => setLoading(state, true),

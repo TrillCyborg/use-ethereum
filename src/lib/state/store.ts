@@ -1,10 +1,10 @@
 import { createStore, applyMiddleware } from 'redux'
 import thunkMiddleware from 'redux-thunk'
-import { createLogger } from 'redux-logger'
+// import { createLogger } from 'redux-logger'
 import reducer from './reducer'
 import { Envs } from '../../common/types'
 
-const loggerMiddleware = createLogger()
+// const loggerMiddleware = createLogger()
 
 const middleware =
   process.env.NODE_ENV === Envs.dev
