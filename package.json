@@ -1,9 +1,10 @@
 {
   "name": "use-ethereum",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "src/index.ts",
   "author": "Jason Werner <jason@trxrg.com>",
   "license": "ISC",
+  "homepage": "https://github.com/TrillCyborg/use-ethereum",
   "scripts": {
     "dev": "parcel src/index.ts",
     "build": "parcel build src/index.ts"
