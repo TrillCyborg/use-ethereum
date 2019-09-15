@@ -8,8 +8,7 @@ import {
   WalletStorageType,
 } from '../wallet'
 import { loadAssets, AssetType } from '../assets'
-import { removeWallet as remove } from '../storage'
-import { ProviderOpts } from '../../common/types'
+import { ProviderOpts, WalletStorage } from '../../common/types'
 
 export enum ACTIONS {
   initWalletStart = 'INIT_WALLET_START',
@@ -47,10 +46,10 @@ const initWalletSuccess = (payload: WalletAndAssets) => ({
 })
 const initWalletFailed = () => ({ type: ACTIONS.initWalletFailed })
 
-export const initWallet = (): AsyncAction => async dispatch => {
+export const initWallet = (storage: WalletStorage): AsyncAction => async dispatch => {
   dispatch(initWalletStart())
   try {
-    const wallet = await load(WalletStorageType.privateKey)
+    const wallet = await load(storage, WalletStorageType.privateKey)
     const assets = await loadAssets(ASSETS, wallet)
     dispatch(initWalletSuccess({ wallet, assets }))
   } catch (e) {
@@ -67,10 +66,10 @@ const createWalletSuccess = (payload: WalletAndAssets) => ({
 })
 const createWalletFailed = () => ({ type: ACTIONS.createWalletFailed })
 
-export const createWallet = (opts?: ProviderOpts): AsyncAction => async dispatch => {
+export const createWallet = (storage: WalletStorage, opts?: ProviderOpts): AsyncAction => async dispatch => {
   dispatch(createWalletStart())
   try {
-    const wallet = await create(opts)
+    const wallet = await create(storage, opts)
     const assets = await loadAssets(ASSETS, wallet)
     dispatch(createWalletSuccess({ wallet, assets }))
   } catch (e) {
@@ -84,11 +83,11 @@ const removeWalletStart = () => ({ type: ACTIONS.removeWalletStart })
 const removeWalletSuccess = () => ({ type: ACTIONS.removeWalletSuccess })
 const removeWalletFailed = () => ({ type: ACTIONS.removeWalletFailed })
 
-export const removeWallet = (): AsyncAction => async dispatch => {
+export const removeWallet = (storage: WalletStorage): AsyncAction => async dispatch => {
   dispatch(removeWalletStart())
   try {
     // REMOVE INCOMING FUNDS LISTENERS
-    await remove()
+    await storage.removeWallet()
     dispatch(removeWalletSuccess())
   } catch (e) {
     console.log('ERROR', e)
@@ -106,15 +105,16 @@ const restoreWalletSuccess = (payload: WalletAndAssets) => ({
 const restoreWalletFailed = () => ({ type: ACTIONS.restoreWalletFailed })
 
 export const restoreWallet = (
+  storage: WalletStorage,
   mnemonics: string,
   userAddress: string,
   opts?: ProviderOpts
 ): AsyncAction => async dispatch => {
   dispatch(restoreWalletStart())
   try {
-    const wallet = await load(WalletStorageType.mnemonics, mnemonics.split(' '), opts)
+    const wallet = await load(storage, WalletStorageType.mnemonics, mnemonics.split(' '), opts)
     if (wallet.address.toLowerCase() !== userAddress.toLowerCase()) {
-      await remove()
+      await storage.removeWallet()
       throw new Error(
         `Incorrect wallet restored. Restored: ${wallet.address} Expected: ${userAddress}`
       )

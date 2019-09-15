@@ -13,7 +13,7 @@ import {
   sendAsset,
 } from './lib/state/actions'
 import { AssetType, getTokenContract } from './lib/assets'
-import { ProviderOpts } from './common/types'
+import { ProviderOpts, WalletStorage } from './common/types'
 
 export interface Ethereum extends EthereumState {
   sendAsset: (to: string, amount: number, asset: AssetType) => void
@@ -26,26 +26,27 @@ export const EthereumContext = React.createContext({} as Ethereum)
 
 interface EthereumReduxProviderProps {
   useTestnet?: boolean
+  storage: WalletStorage
   children: JSX.Element
 }
 
 interface EthereumProviderProps extends EthereumReduxProviderProps, EthereumState {
-  initWallet: () => void
-  createWallet: (opts?: ProviderOpts) => void
-  removeWallet: () => void
-  restoreWallet: (mnemonics: string, userAddress: string, opts?: ProviderOpts) => void
+  initWallet: (storage: WalletStorage) => void
+  createWallet: (storage: WalletStorage, opts?: ProviderOpts) => void
+  removeWallet: (storage: WalletStorage) => void
+  restoreWallet: (storage: WalletStorage, mnemonics: string, userAddress: string, opts?: ProviderOpts) => void
   addToAssetBalance: (asset: AssetType, balance: number, noDiff?: boolean) => void
   sendAsset: (to: string, amount: number, asset: AssetType) => void
 }
 
 class EthereumProvider extends React.Component<EthereumProviderProps> {
   public componentDidMount = async () => {
-    await this.props.initWallet()
+    await this.props.initWallet(this.props.storage)
     this.handleIncomingFunds()
   }
 
   public createWallet = async () => {
-    await this.props.createWallet({ useTestnet: this.props.useTestnet })
+    await this.props.createWallet(this.props.storage, { useTestnet: this.props.useTestnet })
     this.handleIncomingFunds()
   }
 
@@ -54,14 +55,14 @@ class EthereumProvider extends React.Component<EthereumProviderProps> {
       this.props.wallet.provider.removeAllListeners(this.props.wallet.address)
     }
     try {
-      await this.props.removeWallet()
+      await this.props.removeWallet(this.props.storage)
     } catch (e) {
       this.handleIncomingFunds()
     }
   }
 
   public restoreWallet = async (mnemonics: string, userAddress: string) => {
-    await this.props.restoreWallet(mnemonics, userAddress, { useTestnet: this.props.useTestnet })
+    await this.props.restoreWallet(this.props.storage, mnemonics, userAddress, { useTestnet: this.props.useTestnet })
     this.handleIncomingFunds()
   }
 
@@ -124,11 +125,11 @@ export const withEthereum = (
 
 const mapStateToProps = (state: EthereumState) => ({ ...state })
 const mapDispatchToProps = (dispatch: AsyncDispatch) => ({
-  initWallet: () => dispatch(initWallet()),
-  createWallet: (opts?: ProviderOpts) => dispatch(createWallet(opts)),
-  removeWallet: () => dispatch(removeWallet()),
-  restoreWallet: (mnemonics: string, userAddress: string, opts?: ProviderOpts) =>
-    dispatch(restoreWallet(mnemonics, userAddress, opts)),
+  initWallet: (storage: WalletStorage) => dispatch(initWallet(storage)),
+  createWallet: (storage: WalletStorage, opts?: ProviderOpts) => dispatch(createWallet(storage, opts)),
+  removeWallet: (storage: WalletStorage) => dispatch(removeWallet(storage)),
+  restoreWallet: (storage: WalletStorage, mnemonics: string, userAddress: string, opts?: ProviderOpts) =>
+    dispatch(restoreWallet(storage, mnemonics, userAddress, opts)),
   addToAssetBalance: (asset: AssetType, balance: number, noDiff?: boolean) =>
     dispatch(addToAssetBalance(asset, balance, noDiff)),
   sendAsset: (to: string, amount: number, asset: AssetType) =>

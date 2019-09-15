@@ -1,8 +1,7 @@
 import { ethers } from 'ethers'
 import { AssetType, sendEther, sendToken, TransactionRequest } from './assets'
 import { getProvider } from './network'
-import { setWallet, getWalletPrivateKey } from './storage'
-import { ProviderOpts } from '../common/types'
+import { ProviderOpts, WalletStorage } from '../common/types'
 
 export enum WalletStorageType {
   privateKey = 'PRIVATE_KEY',
@@ -13,12 +12,12 @@ const generateMnemonics = () => {
   return ethers.utils.HDNode.entropyToMnemonic(ethers.utils.randomBytes(16)).split(' ')
 }
 
-const loadWalletFromMnemonics = async (mnemonics: string[], opts?: ProviderOpts) => {
+const loadWalletFromMnemonics = async (storage: WalletStorage, mnemonics: string[], opts?: ProviderOpts) => {
   if (!(mnemonics instanceof Array)) throw new Error('invalid mnemonic')
 
   const provider = getProvider(opts)
   const wallet = ethers.Wallet.fromMnemonic(mnemonics.join(' ')).connect(provider)
-  await setWallet({
+  await storage.setWallet({
     privateKey: wallet.privateKey,
     mnemonic: wallet.mnemonic,
     publicKey: wallet.address,
@@ -32,25 +31,26 @@ const loadWalletFromPrivateKey = async (privateKey: string, opts?: ProviderOpts)
   return wallet
 }
 
-export const createWallet = async (opts?: ProviderOpts): Promise<ethers.Wallet> => {
+export const createWallet = async (storage: WalletStorage, opts?: ProviderOpts): Promise<ethers.Wallet> => {
   const mnemonics = generateMnemonics()
-  const wallet = await loadWalletFromMnemonics(mnemonics, opts)
+  const wallet = await loadWalletFromMnemonics(storage, mnemonics, opts)
   return wallet
 }
 
 export const loadWallet = async (
+  storage: WalletStorage,
   type: WalletStorageType,
   mnemonics?: string[],
   opts?: ProviderOpts
 ): Promise<ethers.Wallet> => {
   switch (type) {
     case WalletStorageType.privateKey:
-      const privateKey = await getWalletPrivateKey()
+      const privateKey = await storage.getWalletPrivateKey()
       if (!privateKey) throw new Error(`No private key in storage`)
       return loadWalletFromPrivateKey(privateKey, opts)
     case WalletStorageType.mnemonics:
       if (!mnemonics) throw new Error(`No mnemonics provided`)
-      return loadWalletFromMnemonics(mnemonics)
+      return loadWalletFromMnemonics(storage, mnemonics)
   }
 }
 
