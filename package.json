@@ -1,6 +1,6 @@
 {
   "name": "use-ethereum",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "main": "src/index.ts",
   "author": "Jason Werner <jason@trxrg.com>",
   "license": "ISC",
